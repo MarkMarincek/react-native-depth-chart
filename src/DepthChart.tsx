@@ -45,16 +45,17 @@ const DepthChart = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const throttleSetState = useCallback(
-    throttle(1000, false, (data: OrderBook) => {
+    throttle(1000, true, (data: OrderBook) => {
       isLive && dispatch(addOrderBookEntryAction(data));
     }),
     [isLive],
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const onSliderValueChange = useCallback(
-    index => {
+    throttle(250, false, (index: number) => {
       dispatch(setActiveIndexAction(index - 1));
-    },
+    }),
     [dispatch],
   );
 
