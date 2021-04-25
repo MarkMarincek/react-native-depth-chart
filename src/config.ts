@@ -1,0 +1,3 @@
+const ORDER_BOOKS_BUFFER = 256;
+
+export {ORDER_BOOKS_BUFFER};

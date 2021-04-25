@@ -22,3 +22,8 @@ export interface BitstampResponse<T> {
 }
 
 export type OrderBookResponse = BitstampResponse<OrderBook>;
+
+export interface Action<T, D> {
+  type: T;
+  payload: D;
+}
