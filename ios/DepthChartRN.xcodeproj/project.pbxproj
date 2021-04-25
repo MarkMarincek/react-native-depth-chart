@@ -114,7 +114,6 @@
 				11FF12765D60190080C3B998 /* Pods-DepthChartRN-DepthChartRNTests.debug.xcconfig */,
 				E5A891DF525498D748D50869 /* Pods-DepthChartRN-DepthChartRNTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -485,6 +484,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3HUQW7Y9GL;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = DepthChartRN/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -511,6 +511,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3HUQW7Y9GL;
 				INFOPLIST_FILE = DepthChartRN/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
