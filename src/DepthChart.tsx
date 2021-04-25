@@ -2,12 +2,15 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import {throttle} from 'throttle-debounce';
 import {VictoryArea, VictoryAxis, VictoryChart, VictoryGroup, VictoryTheme} from 'victory-native';
-import {OrderBook, OrderBookResponse} from 'src/models/interfaces';
+import {OrderBookResponse} from 'src/models/interfaces';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppState} from './models/appStoreInterfaces';
-import {addOrderBookEntryAction, setActiveIndexAction} from './store/appActions';
+import {addOrderBookEntryAction, setActiveIndexAction, setActivePairAction} from './store/appActions';
 import {format} from 'date-fns';
 import Slider from '@react-native-community/slider';
+import {Picker} from '@react-native-picker/picker';
+import {OrderPairs} from './models/enums';
+import {API_URL} from './config';
 
 function stateSelector(state: AppState) {
   const {orderBooks, activePair, activeIndex} = state;
@@ -43,14 +46,18 @@ const DepthChart = () => {
     return Number(orderBook[orderBook.length - 1].timestamp) - Number(orderBook[0].timestamp);
   }, [orderBook]);
 
+  // Warning because of the throttle function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const throttleSetState = useCallback(
-    throttle(1000, true, (data: OrderBook) => {
-      isLive && dispatch(addOrderBookEntryAction(data));
+    throttle(1000, true, (data: OrderBookResponse) => {
+      const dataPair = data.channel.split('_')[2] as OrderPairs;
+
+      isLive && dispatch(addOrderBookEntryAction(dataPair, data.data));
     }),
     [isLive],
   );
 
+  // Warning because of the throttle function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onSliderValueChange = useCallback(
     throttle(250, false, (index: number) => {
@@ -60,7 +67,7 @@ const DepthChart = () => {
   );
 
   useEffect(() => {
-    const newSocket = new WebSocket('wss://ws.bitstamp.net');
+    const newSocket = new WebSocket(API_URL);
     newSocket.onopen = () => {
       setSocket(newSocket);
     };
@@ -98,7 +105,8 @@ const DepthChart = () => {
       return;
     }
     socket.onmessage = event => {
-      throttleSetState((JSON.parse(event.data) as OrderBookResponse).data);
+      const response = JSON.parse(event.data) as OrderBookResponse;
+      throttleSetState(response);
     };
   }, [throttleSetState, socket]);
 
@@ -109,6 +117,10 @@ const DepthChart = () => {
     dispatch(setActiveIndexAction(orderBook.length - 1));
   }
 
+  function selectOrderPair(pair: OrderPairs) {
+    dispatch(setActivePairAction(pair));
+  }
+
   if (!activeOrderBook || !orderBook) {
     return (
       <View style={styles.loadingWrapper}>
@@ -116,6 +128,8 @@ const DepthChart = () => {
       </View>
     );
   }
+
+  const liveTextColor = isLive ? 'green' : 'red';
 
   return (
     <SafeAreaView style={styles.safeView}>
@@ -147,7 +161,7 @@ const DepthChart = () => {
         <View style={styles.liveWrapper}>
           <Text>-{timelineLength}s</Text>
           <TouchableOpacity onPress={goLive}>
-            <Text style={[styles.liveText, {color: isLive ? 'green' : 'red'}]}>Live</Text>
+            <Text style={[styles.liveText, {color: liveTextColor}]}>Live</Text>
           </TouchableOpacity>
         </View>
         <Slider
@@ -159,6 +173,12 @@ const DepthChart = () => {
           step={1}
         />
       </View>
+      <Picker selectedValue={activePair} onValueChange={selectOrderPair}>
+        {Object.values(OrderPairs).map(pair => {
+          const label = pair.slice(0, 3) + '-' + pair.slice(3, 6);
+          return <Picker.Item key={pair} label={label.toUpperCase()} value={pair} />;
+        })}
+      </Picker>
     </SafeAreaView>
   );
 };

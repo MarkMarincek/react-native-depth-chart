@@ -3,11 +3,10 @@ import {ORDER_BOOKS_BUFFER} from 'src/config';
 import {AppActions, AppActionTypes, AppState} from 'src/models/appStoreInterfaces';
 import {OrderPairs} from 'src/models/enums';
 import {TransformedOrderBook} from 'src/models/interfaces';
+import {transformOrderBook} from 'src/utils/helpers';
 
 export const initialState: AppState = {
-  orderBooks: {
-    btceur: [],
-  },
+  orderBooks: {},
   activePair: OrderPairs.btcEur,
   activeIndex: 1,
 };
@@ -15,35 +14,14 @@ export const initialState: AppState = {
 function storeReducer(state = initialState, action: AppActions): AppState {
   switch (action.type) {
     case AppActionTypes.AddOrderBookEntry:
-      if (!action.payload?.orderBook?.asks || !action.payload?.orderBook?.bids) {
-        return state;
-      }
-      const activeOrderBook = state.orderBooks[state.activePair];
+      const activeOrderBook = state.orderBooks[action.payload.pair];
       if (activeOrderBook?.length && activeOrderBook.length - 1 !== state.activeIndex) {
         return state;
       }
-
-      console.log('adding entry!');
-
-      const orderBooks = {...state.orderBooks};
-
-      let askTotal = 0;
-      const asks = action.payload.orderBook.asks.map(ask => {
-        askTotal += Number(ask[1]);
-        return {
-          x: Number(ask[0]),
-          y: askTotal,
-        };
-      });
-      let bidTotal = 0;
-      const bids = action.payload.orderBook.bids.map(bid => {
-        bidTotal += Number(bid[1]);
-        return {
-          x: Number(bid[0]),
-          y: bidTotal,
-        };
-      });
-      const entry = {...action.payload.orderBook, asks, bids};
+      const entry = transformOrderBook(action.payload.orderBook);
+      if (!entry) {
+        return state;
+      }
 
       let newArray: TransformedOrderBook[];
 
@@ -54,11 +32,19 @@ function storeReducer(state = initialState, action: AppActions): AppState {
       } else {
         newArray = [...activeOrderBook.slice(1, activeOrderBook.length), entry];
       }
+
+      const orderBooks = {...state.orderBooks};
       orderBooks[state.activePair] = newArray;
       return {...state, orderBooks, activeIndex: newArray.length - 1};
 
     case AppActionTypes.SetActiveIndex:
       return {...state, activeIndex: action.payload.index};
+    case AppActionTypes.SetActivePair:
+      return {
+        ...state,
+        activePair: action.payload.pair,
+        activeIndex: Math.max(0, (state.orderBooks[action.payload.pair] ?? []).length - 1),
+      };
     default:
       return state;
   }
