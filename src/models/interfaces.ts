@@ -1,11 +1,16 @@
 export interface TimestampObject {
-  timestamp: number;
-  microtimestamp: number;
+  timestamp: string;
+  microtimestamp: string;
 }
 
 export interface OrderBook extends TimestampObject {
-  bids: [[number, number]];
-  asks: [[number, number]];
+  bids?: [[number, number]];
+  asks?: [[number, number]];
+}
+
+export interface TransformedOrderBook extends TimestampObject {
+  bids: {x: number; y: number}[];
+  asks: {x: number; y: number}[];
 }
 
 export interface BitstampMessage {
